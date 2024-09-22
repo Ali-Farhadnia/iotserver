@@ -36,6 +36,14 @@ type NewSensor struct {
 	Details   string  `json:"details"`
 }
 
+type UpdateSensor struct {
+	Type      string  `json:"type"`
+	Unit      string  `json:"unit"`
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+	Details   string  `json:"details"`
+}
+
 type Record struct {
 	ID        string    `json:"id"`
 	SensorID  string    `json:"sensor_id"`
@@ -61,17 +69,14 @@ func main() {
 	// Create tables if they don't exist
 	createTables()
 
-	// // Initialize MQTT client
-	// initMQTT()
-
 	// Set up HTTP server
 	router := mux.NewRouter()
 	setupRoutes(router)
 
 	// Start the server
 	go func() {
-		log.Println("Starting server on :8080")
-		log.Fatal(http.ListenAndServe(":8080", router))
+		log.Println("Starting server on :9090")
+		log.Fatal(http.ListenAndServe(":9090", router))
 	}()
 
 	// Wait for interrupt signal to gracefully shutdown the server
@@ -170,7 +175,6 @@ func setupRoutes(router *mux.Router) {
 		log.Printf("Route: %s, Methods: %v\n", pathTemplate, methods)
 		return nil
 	})
-
 }
 
 // API handlers
@@ -278,24 +282,18 @@ func updateSensor(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	sensorID := vars["id"]
 
-	var updatedSensor Sensor
+	var updatedSensor UpdateSensor
 	if err := json.NewDecoder(r.Body).Decode(&updatedSensor); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
-
-	// Ensure the ID in the URL matches the ID in the request body
-	if sensorID != updatedSensor.ID {
-		http.Error(w, "Sensor ID in URL does not match ID in request body", http.StatusBadRequest)
 		return
 	}
 
 	// Update the sensor in the database
 	_, err := db.Exec(`
 		UPDATE sensors 
-		SET type = ?, unit = ?, timestamp = ?, latitude = ?, longitude = ?, details = ?
+		SET type = ?, unit = ?, latitude = ?, longitude = ?, details = ?
 		WHERE id = ?
-	`, updatedSensor.Type, updatedSensor.Unit, updatedSensor.Timestamp, updatedSensor.Latitude, updatedSensor.Longitude, updatedSensor.Details, sensorID)
+	`, updatedSensor.Type, updatedSensor.Unit, updatedSensor.Latitude, updatedSensor.Longitude, updatedSensor.Details, sensorID)
 
 	if err != nil {
 		http.Error(w, "Error updating sensor", http.StatusInternalServerError)
