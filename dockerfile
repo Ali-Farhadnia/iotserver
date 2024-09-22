@@ -1,34 +1,40 @@
 # Step 1: Build the Go app
-# Use the official Golang image to build the application
-FROM golang:1.20-alpine AS builder
+# Use the appropriate Golang version and enable CGO for SQLite
+FROM golang:1.21-alpine AS builder
+
+# Install necessary dependencies for CGO (for SQLite)
+RUN apk add --no-cache gcc g++ musl-dev
 
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy go.mod and go.sum (if they exist) to cache dependencies
+# Copy go.mod and go.sum to cache dependencies first
 COPY go.mod go.sum ./
 
-# Download and cache dependencies (this step is faster during rebuilds)
+# Download dependencies
 RUN go mod download
 
 # Copy the rest of the application code
 COPY . .
 
-# Build the Go app
-RUN go build -o iot-app .
+# Enable CGO (required for go-sqlite3) and build the Go app
+RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o iotserver .
 
 # Step 2: Run the Go app
-# Use a smaller base image to run the application
+# Use a minimal base image to run the application
 FROM alpine:latest
+
+# Install SQLite libraries required by the Go app
+RUN apk add --no-cache sqlite-libs
 
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy the compiled Go binary from the builder stage
-COPY --from=builder /app/iot-app .
+# Copy the compiled binary from the builder stage
+COPY --from=builder /app/iotserver .
 
-# Expose a port (if needed, e.g., for a web server)
-EXPOSE 9090
+# Expose any port your application might use (e.g., for HTTP API)
+EXPOSE 8080
 
-# Run the app
-CMD ["./iot-app"]
+# Command to run the app
+CMD ["./iotserver"]
