@@ -34,7 +34,7 @@ WORKDIR /app
 COPY --from=builder /app/iotserver .
 
 # Expose any port your application might use (e.g., for HTTP API)
-EXPOSE 8080
+EXPOSE 9090
 
 # Command to run the app
 CMD ["./iotserver"]
