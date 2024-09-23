@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -58,13 +59,13 @@ var mqttBroker string
 var sensorTopic string
 
 func main() {
-	// Initialize SQLite database
 	var err error
-	db, err := sql.Open("sqlite3", "/app/data/mydb.db")
+	// Initialize the SQLite database
+	db, err = sql.Open("sqlite3", "/app/data/mydb.db") // Ensure this path is correct and matches your Docker setup
 	if err != nil {
-		log.Fatal(err)
+		// Handle error if the database connection cannot be opened
+		panic(fmt.Sprintf("Failed to open the database: %v", err))
 	}
-	defer db.Close()
 
 	// Create tables if they don't exist
 	createTables()
