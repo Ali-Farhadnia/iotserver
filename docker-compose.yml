@@ -1,0 +1,11 @@
+version: '3'
+services:
+  iotserver:
+    build:
+      context: .    # Build the image from the current directory where the Dockerfile is located
+      dockerfile: Dockerfile  # This is optional if the Dockerfile is named "Dockerfile"
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./data:/app/data  # Persist the SQLite DB on the host
+    restart: on-failure   # Restart on failure

@@ -60,7 +60,7 @@ var sensorTopic string
 func main() {
 	// Initialize SQLite database
 	var err error
-	db, err = sql.Open("sqlite3", "./sensors.db")
+	db, err := sql.Open("sqlite3", "/app/data/mydb.db")
 	if err != nil {
 		log.Fatal(err)
 	}
