@@ -13,6 +13,7 @@ import (
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/google/uuid"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	_ "github.com/mattn/go-sqlite3"
@@ -74,10 +75,17 @@ func main() {
 	router := mux.NewRouter()
 	setupRoutes(router)
 
+	// Allow all origins
+	corsHandler := handlers.CORS(
+		handlers.AllowedOrigins([]string{"*"}), // Allow all origins
+		handlers.AllowedMethods([]string{"*"}),
+		handlers.AllowedHeaders([]string{"*"}),
+	)
+
 	// Start the server
 	go func() {
 		log.Println("Starting server on :9090")
-		log.Fatal(http.ListenAndServe(":9090", router))
+		log.Fatal(http.ListenAndServe(":9090", corsHandler(router)))
 	}()
 
 	// Wait for interrupt signal to gracefully shutdown the server
