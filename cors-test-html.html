@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS Test</title>
+</head>
+<body>
+    <h1>CORS Test</h1>
+    <button onclick="testPost()">Test POST</button>
+    <button onclick="testPut()">Test PUT</button>
+    <button onclick="testDelete()">Test DELETE</button>
+    <div id="result"></div>
+
+    <script>
+        const baseUrl = 'http://88.198.159.175:9090';
+        const resultDiv = document.getElementById('result');
+
+        function displayResult(method, response) {
+            resultDiv.innerHTML += `<p>${method} Result: ${JSON.stringify(response)}</p>`;
+        }
+
+        async function makeRequest(method, url, body = null) {
+            try {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                };
+                if (body) {
+                    options.body = JSON.stringify(body);
+                }
+                const response = await fetch(url, options);
+                const data = await response.json();
+                displayResult(method, data);
+            } catch (error) {
+                displayResult(method, `Error: ${error.message}`);
+            }
+        }
+
+        function testPost() {
+            makeRequest('POST', `${baseUrl}/sensors`, { name: 'Test Sensor' });
+        }
+
+        function testPut() {
+            // Replace with an actual sensor ID from your system
+            const sensorId = 'baf4bc3f-fb69-4202-9a1d-fb15bf716198';
+            makeRequest('PUT', `${baseUrl}/sensors/${sensorId}`, { name: 'Updated Sensor' });
+        }
+
+        function testDelete() {
+            // Replace with an actual sensor ID from your system
+            const sensorId = '2c3bd034-aa2b-47f1-a55d-398e7fff9e2e';
+            makeRequest('DELETE', `${baseUrl}/sensors/${sensorId}`);
+        }
+    </script>
+</body>
+</html>
