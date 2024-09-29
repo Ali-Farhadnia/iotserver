@@ -77,13 +77,12 @@ func main() {
 
 	// Create a new CORS handler
 	co := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost", "http://localhost:8080"},
+		AllowedOrigins:   []string{"*"}, // Allow all origins
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type", "Authorization", "X-Requested-With"},
-		ExposedHeaders:   []string{"Content-Length"},
+		AllowedHeaders:   []string{"*"}, // Allow all headers
 		AllowCredentials: true,
-		MaxAge:           300, // Maximum value not ignored by any of major browsers
-		Debug:            true,
+		// Enable Debugging for testing, consider disabling in production
+		Debug: true,
 	})
 
 	// Wrap router with CORS handler
