@@ -75,11 +75,20 @@ func main() {
 	router := mux.NewRouter()
 	setupRoutes(router)
 
-	// Allow all origins
+	// Handle preflight OPTIONS requests globally
+	router.Methods(http.MethodOptions).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")  // Allow all origins
+		w.Header().Set("Access-Control-Allow-Methods", "*") // Allow all methods
+		w.Header().Set("Access-Control-Allow-Headers", "*") // Allow all headers
+		w.WriteHeader(http.StatusOK)
+	})
+
+	// Set up CORS to allow everything
 	corsHandler := handlers.CORS(
 		handlers.AllowedOrigins([]string{"*"}), // Allow all origins
-		handlers.AllowedMethods([]string{"*"}),
-		handlers.AllowedHeaders([]string{"*"}),
+		handlers.AllowedMethods([]string{"*"}), // Allow all methods
+		handlers.AllowedHeaders([]string{"*"}), // Allow all headers
+		handlers.AllowCredentials(),            // Allow credentials (if needed)
 	)
 
 	// Start the server
