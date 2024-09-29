@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -249,8 +250,9 @@ func createSensor(w http.ResponseWriter, r *http.Request) {
 
 func querySensors(w http.ResponseWriter, r *http.Request) {
 	// Parse query parameters for pagination
-	limit := 10 // Default limit
-	offset := 0 // Default offset
+	limit := 10     // Default limit
+	offset := 0     // Default offset
+	order := "DESC" // Default order
 
 	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
 		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
@@ -264,13 +266,19 @@ func querySensors(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if orderStr := r.URL.Query().Get("order"); orderStr == "asc" || orderStr == "desc" {
+		order = strings.ToUpper(orderStr)
+	}
+
 	// Query sensors
-	rows, err := db.Query(`
+	query := fmt.Sprintf(`
 		SELECT id, type, unit, timestamp, latitude, longitude, details 
 		FROM sensors 
-		ORDER BY timestamp DESC 
+		ORDER BY timestamp %s 
 		LIMIT ? OFFSET ?
-	`, limit, offset)
+	`, order)
+
+	rows, err := db.Query(query, limit, offset)
 	if err != nil {
 		http.Error(w, "Error querying sensors", http.StatusInternalServerError)
 		log.Println("Error querying sensors:", err)
