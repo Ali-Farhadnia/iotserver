@@ -13,10 +13,10 @@ import (
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/google/uuid"
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/rs/cors"
 )
 
 // Structs for our data models
@@ -75,26 +75,23 @@ func main() {
 	router := mux.NewRouter()
 	setupRoutes(router)
 
-	// Handle preflight OPTIONS requests globally
-	router.Methods(http.MethodOptions).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")  // Allow all origins
-		w.Header().Set("Access-Control-Allow-Methods", "*") // Allow all methods
-		w.Header().Set("Access-Control-Allow-Headers", "*") // Allow all headers
-		w.WriteHeader(http.StatusOK)
+	// Create a new CORS handler
+	co := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"}, // Allow all origins
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"*"}, // Allow all headers
+		AllowCredentials: true,
+		// Enable Debugging for testing, consider disabling in production
+		Debug: true,
 	})
 
-	// Set up CORS to allow everything
-	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"*"}), // Allow all origins
-		handlers.AllowedMethods([]string{"*"}), // Allow all methods
-		handlers.AllowedHeaders([]string{"*"}), // Allow all headers
-		handlers.AllowCredentials(),            // Allow credentials (if needed)
-	)
+	// Wrap router with CORS handler
+	handler := co.Handler(router)
 
 	// Start the server
 	go func() {
 		log.Println("Starting server on :9090")
-		log.Fatal(http.ListenAndServe(":9090", corsHandler(router)))
+		log.Fatal(http.ListenAndServe(":9090", handler))
 	}()
 
 	// Wait for interrupt signal to gracefully shutdown the server
